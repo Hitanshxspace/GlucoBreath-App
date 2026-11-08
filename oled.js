@@ -49,13 +49,13 @@
       if (D.linked) btxtC('BT', 64, 1);
       drop(64, 32, 7 + 2 * Math.sin(t * .004)); o.lineWidth = 1;
       for (var k = 0; k < 2; k++) { var p = ((t / 2400) + k * .5) % 1; if (p < .9) circ(64, 32, 13 + p * 10, false); }
-      btxtC('TOUCH TO START', 64, 54);
+      btxtC('PRESS TO START', 64, 54);
     },
     pair: function (t) {
       btxtC('PAIR CODE', 64, 1);
       big(grp(D.code), 64, 14, 21);
       btxtC('Same code in the app?', 64, 41);
-      if (Math.floor(t / 600) % 2 === 0) btxtC('TOUCH TO CONFIRM', 64, 53);
+      if (Math.floor(t / 600) % 2 === 0) btxtC('PRESS TO CONFIRM', 64, 53);
     },
     ready: function (t) {
       btxtC('GET READY', 64, 2);
@@ -92,7 +92,7 @@
       btxtC('BREATH DETAILS', 56, 1); o.fillRect(0, 11, 128, 1);
       btxt('Acetone  ' + D.ace.toFixed(2) + ' ppm', 0, 15); btxt('Ethanol  ' + D.eth.toFixed(2) + ' ppm', 0, 27);
       btxt('Temp ' + D.t.toFixed(1) + 'C  Hum ' + Math.round(D.h) + '%', 0, 39);
-      if (Math.floor(t / 600) % 2 === 0) btxtC('Touch to retest', 64, 54);
+      if (Math.floor(t / 600) % 2 === 0) btxtC('Press to retest', 64, 54);
     }
   };
 

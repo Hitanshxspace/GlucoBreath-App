@@ -367,7 +367,7 @@
 
   /* ---------- test view ---------- */
   var hints = [
-    'Standby. Touch the sensor on the device or press Start test.',
+    'Standby. Press the button on the device or press Start test.',
     'Get ready. Bring the inlet to about 2 cm from your mouth.',
     'Blow steadily until the countdown ends.',
     'Analyzing your breath.',
@@ -376,7 +376,7 @@
   function renderTest() {
     var on = S.link === 'paired';
     $('#btn-start').disabled = !(on && (S.live.stage === 0 || S.live.stage === 4));
-    $('#start-note').textContent = on ? 'You can also touch the sensor on the device.' : 'Connect and pair a device first.';
+    $('#start-note').textContent = on ? 'You can also press the button on the device.' : 'Connect and pair a device first.';
     $('#test-hint').innerHTML = on ? esc(hints[S.live.stage]) : 'Not connected. <a class="link" href="#/device">Connect your device</a> to begin.';
     $('#mirror-link').textContent = on ? 'Linked' : 'Not connected';
     $('#mirror-name').textContent = S.dev ? S.dev.name : 'GlucoBreath';
@@ -409,7 +409,7 @@
     if (L === 'pairing') {
       $('#pair-code').textContent = grp(S.code);
       $('#ps-1').className = 'done'; $('#ps-2').className = S.pairStep >= 2 ? 'done' : 'now'; $('#ps-3').className = S.pairStep >= 2 ? 'now' : '';
-      $('#pair-msg').textContent = S.pairStep >= 2 ? 'Check that your device shows the same code, then touch its sensor to confirm.' : 'Sending the code to your device.';
+      $('#pair-msg').textContent = S.pairStep >= 2 ? 'Check that your device shows the same code, then press its button to confirm.' : 'Sending the code to your device.';
     }
     if (L === 'paired') {
       $('#linked-name').textContent = S.dev.name;
