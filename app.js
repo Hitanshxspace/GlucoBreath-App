@@ -434,23 +434,24 @@
 
   function BleLink(h) { this.h = h; this.dev = null; }
   BleLink.prototype.connect = function () {
-    var self = this;
+    var self = this; this.step = 'choosing a device';
     return navigator.bluetooth.requestDevice({ filters: [{ namePrefix: 'GlucoBreath' }], optionalServices: [SVC] }).then(function (d) {
       self.dev = d; d.addEventListener('gattserverdisconnected', function () { self.h.closed(); });
-      return d.gatt.connect();
-    }).then(function (srv) { return srv.getPrimaryService(SVC); }).then(function (svc) {
+      self.step = 'opening the Bluetooth connection'; return d.gatt.connect();
+    }).then(function (srv) { self.step = 'finding the GlucoBreath service (flash firmware v6 or newer)'; return srv.getPrimaryService(SVC); }).then(function (svc) {
+      self.step = 'reading the service characteristics';
       return Promise.all([svc.getCharacteristic(C_DATA), svc.getCharacteristic(C_PAIR), svc.getCharacteristic(C_STAT), svc.getCharacteristic(C_CMD)]);
     }).then(function (c) {
       self.cData = c[0]; self.cPair = c[1]; self.cStat = c[2]; self.cCmd = c[3];
       self.cStat.addEventListener('characteristicvaluechanged', function (e) { self.h.status(e.target.value.getUint8(0)); });
-      return self.cStat.startNotifications();
+      self.step = 'subscribing to status updates (needs firmware v6 or newer)'; return self.cStat.startNotifications();
     }).then(function () { return self.dev.name || 'GlucoBreath'; });
   };
-  BleLink.prototype.sendPair = function (code) { return this.cPair.writeValue(new TextEncoder().encode(code)); };
+  BleLink.prototype.sendPair = function (code) { this.step = 'sending the pairing code'; return this.cPair.writeValue(new TextEncoder().encode(code)); };
   BleLink.prototype.startData = function () {
     var self = this;
     this.cData.addEventListener('characteristicvaluechanged', function (e) { self.h.packet(parsePacket(e.target.value)); });
-    return this.cData.startNotifications();
+    this.step = 'subscribing to live data (needs firmware v6 or newer)'; return this.cData.startNotifications();
   };
   BleLink.prototype.cmd = function (ch) { return this.cCmd.writeValue(new TextEncoder().encode(ch)); };
   BleLink.prototype.close = function () { try { if (this.dev && this.dev.gatt.connected) this.dev.gatt.disconnect(); } catch (e) { } };
@@ -515,7 +516,7 @@
         Promise.resolve(l.startData()).then(function () {
           S.link = 'paired'; S.live = { stage: 0, prog: 0, g: 0, ace: 0, eth: 0, T: null, H: null }; S.stageAt = performance.now(); S.blow = [];
           GBOled.setData({ linked: true }); devErr(''); updatePill(); redrawAll(); toast('Paired with ' + S.dev.name);
-        }, function (e) { failPair('Paired, but live data could not start: ' + e.message); });
+        }, function (e) { failPair('Paired, but live data could not start (' + ((l && l.step) || 'live data') + '): ' + (e && e.name ? e.name + ': ' : '') + e.message); });
       }
       else if (code === 3) failPair('Pairing was cancelled or timed out on the device.');
       else if (code === 4) failPair('The device is busy, warming up or running a test. Try again in a moment.');
@@ -542,7 +543,7 @@
       S.pairTimer = setTimeout(function () { if (S.link === 'pairing') failPair('The device did not confirm in time.'); }, 50000);
       return link.sendPair(S.code);
     }).catch(function (e) {
-      var msg = e && e.name === 'NotFoundError' ? 'No device was selected.' : 'Could not connect: ' + (e && e.message ? e.message : e);
+      var msg = e && e.name === 'NotFoundError' && link.step === 'choosing a device' ? 'No device was selected.' : 'Could not connect while ' + (link.step || 'starting') + '. ' + (e && e.name ? e.name + ': ' : '') + (e && e.message ? e.message : e) + '. Turn the device off and on, forget it in your phone Bluetooth settings, reload this page and try again.';
       if (S.link !== 'off') { try { link.close(); } catch (x) { } resetLink(); } devErr(msg);
     });
   }
